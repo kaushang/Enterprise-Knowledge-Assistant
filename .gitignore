@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+*.egg
+
+# Environment variables
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# ChromaDB
+chroma_store/
+
+# Node
+node_modules/
+dist/
+.npm
+
+# Vite
+frontend/dist/
+frontend/.vite/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+
+# Test files
+backend/test_rag.py
