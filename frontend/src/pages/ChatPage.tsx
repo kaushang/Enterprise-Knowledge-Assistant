@@ -143,7 +143,7 @@ export default function ChatPage() {
 
         {/* Header */}
         <div className="h-12 border-b border-gray-200 flex items-center justify-between px-6">
-          <span className="text-sm font-semibold text-black">Nebula9 Knowledge Assistant</span>
+          <span className="text-sm font-semibold text-black">Enterprise Knowledge Assistant</span>
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-500">{user?.name}</span>
             <button
