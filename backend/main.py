@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth_router, chat_router, admin_router
+from database import engine, Base
+import models
+
+# Create tables on startup
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Enterprise Knowledge Assistant")
 
