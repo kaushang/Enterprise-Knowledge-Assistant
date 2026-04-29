@@ -6,7 +6,7 @@ app = FastAPI(title="Enterprise Knowledge Assistant")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174"],
+    allow_origins=["http://localhost:5174", "https://enterprise-knowledge-assistant-kappa.vercel.app/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
