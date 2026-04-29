@@ -7,3 +7,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: FRONTEND_ORIGINS
+        value: https://enterprise-knowledge-assistant-kappa.vercel.app
