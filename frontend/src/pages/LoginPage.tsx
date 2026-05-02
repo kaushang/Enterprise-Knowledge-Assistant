@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 console.log("🩷API_URL:", API_URL);
@@ -54,7 +55,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm w-full max-w-md p-8">
         <div className="mb-8">
-          <h1 className="text-xl font-bold text-black">Enterprise Knowledge Assistant</h1>
+          <h1 className="text-xl font-bold text-black">
+            Enterprise Knowledge Assistant
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -96,6 +99,13 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
+
+        <p className="text-xs text-gray-500 mt-4 text-center">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-blue-600 hover:underline">
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   );
