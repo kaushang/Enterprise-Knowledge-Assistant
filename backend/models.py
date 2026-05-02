@@ -21,8 +21,8 @@ class Document(Base):
     filename = Column(String(255), nullable=False)
     uploaded_by = Column(Integer, ForeignKey("users.id"))
     chunk_count = Column(Integer)
+    category = Column(String(100), default="General")
     uploaded_at = Column(DateTime, server_default=func.now())
-
 
 class QueryHistory(Base):
     __tablename__ = "query_history"

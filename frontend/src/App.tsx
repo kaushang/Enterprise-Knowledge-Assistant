@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ChatPage from "./pages/ChatPage";
 import AdminPage from "./pages/AdminPage";
+import KnowledgeBasePage from "./pages/KnowledgeBasePage";
 
 function ProtectedRoute({
   children,
@@ -36,6 +37,14 @@ export default function App() {
           <Route path="/" element={<RootRedirect />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/knowledge-base"
+            element={
+              <ProtectedRoute>
+                <KnowledgeBasePage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/chat"
             element={
