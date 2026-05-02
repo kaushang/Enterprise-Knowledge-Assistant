@@ -80,8 +80,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm w-full max-w-md p-8">
         <div className="mb-8">
-          <h1 className="text-xl font-bold text-black">Nebula9 Internal</h1>
-          <p className="text-sm text-gray-500 mt-1">Create your account</p>
+          <h1 className="text-xl font-bold text-black">Create your account</h1>
         </div>
 
         <form onSubmit={handleSubmit}>
