@@ -13,6 +13,44 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+
+  function validateEmail(email: string): string | undefined {
+    if (!email.trim()) {
+      return "Email is required";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return undefined;
+  }
+
+  function validatePassword(password: string): string | undefined {
+    if (!password) {
+      return "Password is required";
+    }
+    if (password.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+    return undefined;
+  }
+
+  function validateForm(): boolean {
+    const errors: typeof fieldErrors = {};
+    
+    const emailError = validateEmail(email);
+    if (emailError) errors.email = emailError;
+    
+    const passwordError = validatePassword(password);
+    if (passwordError) errors.password = passwordError;
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
 
   function handleGoogleLogin() {
     window.location.href = `${API_URL}/auth/google/login`;
@@ -21,6 +59,11 @@ export default function LoginPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -70,11 +113,18 @@ export default function LoginPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+              }}
+              className={`w-full border rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600 ${
+                fieldErrors.email ? "border-red-500 bg-red-50" : "border-gray-300"
+              }`}
               placeholder="you@company.com"
             />
+            {fieldErrors.email && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div className="mb-6">
@@ -84,11 +134,18 @@ export default function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600"
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, password: undefined }));
+              }}
+              className={`w-full border rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600 ${
+                fieldErrors.password ? "border-red-500 bg-red-50" : "border-gray-300"
+              }`}
               placeholder="••••••••"
             />
+            {fieldErrors.password && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.password}</p>
+            )}
           </div>
 
           {error && <p className="text-sm text-red-600 mb-4">{error}</p>}

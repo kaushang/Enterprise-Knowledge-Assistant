@@ -17,6 +17,75 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+    department?: string;
+  }>({});
+
+  function validateName(name: string): string | undefined {
+    if (!name.trim()) {
+      return "Full name is required";
+    }
+    if (name.trim().length < 2) {
+      return "Name must be at least 2 characters";
+    }
+    if (name.length > 100) {
+      return "Name must not exceed 100 characters";
+    }
+    return undefined;
+  }
+
+  function validateEmail(email: string): string | undefined {
+    if (!email.trim()) {
+      return "Email is required";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return undefined;
+  }
+
+  function validatePassword(password: string): string | undefined {
+    if (!password) {
+      return "Password is required";
+    }
+    if (password.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+    if (password.length > 50) {
+      return "Password must not exceed 50 characters";
+    }
+    return undefined;
+  }
+
+  function validateDepartment(department: string): string | undefined {
+    if (department && department.length > 100) {
+      return "Department name must not exceed 100 characters";
+    }
+    return undefined;
+  }
+
+  function validateForm(): boolean {
+    const errors: typeof fieldErrors = {};
+    
+    const nameError = validateName(form.name);
+    if (nameError) errors.name = nameError;
+    
+    const emailError = validateEmail(form.email);
+    if (emailError) errors.email = emailError;
+    
+    const passwordError = validatePassword(form.password);
+    if (passwordError) errors.password = passwordError;
+    
+    const departmentError = validateDepartment(form.department);
+    if (departmentError) errors.department = departmentError;
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
 
   function handleGoogleLogin() {
     window.location.href = `${API_URL}/auth/google/login`;
@@ -25,12 +94,20 @@ export default function RegisterPage() {
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    // Clear the error for this field when user starts typing
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -97,10 +174,14 @@ export default function RegisterPage() {
               name="name"
               value={form.name}
               onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600"
+              className={`w-full border rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600 ${
+                fieldErrors.name ? "border-red-500 bg-red-50" : "border-gray-300"
+              }`}
               placeholder="John Doe"
             />
+            {fieldErrors.name && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.name}</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -112,10 +193,14 @@ export default function RegisterPage() {
               name="email"
               value={form.email}
               onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600"
+              className={`w-full border rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600 ${
+                fieldErrors.email ? "border-red-500 bg-red-50" : "border-gray-300"
+              }`}
               placeholder="you@company.com"
             />
+            {fieldErrors.email && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -127,10 +212,17 @@ export default function RegisterPage() {
               name="password"
               value={form.password}
               onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600"
+              className={`w-full border rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600 ${
+                fieldErrors.password ? "border-red-500 bg-red-50" : "border-gray-300"
+              }`}
               placeholder="••••••••"
             />
+            {fieldErrors.password && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.password}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Minimum 6 character
+            </p>
           </div>
 
           <div className="mb-4">
@@ -142,9 +234,14 @@ export default function RegisterPage() {
               name="department"
               value={form.department}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600"
+              className={`w-full border rounded px-3 py-2 text-sm text-black focus:outline-none focus:border-blue-600 ${
+                fieldErrors.department ? "border-red-500 bg-red-50" : "border-gray-300"
+              }`}
               placeholder="e.g. HR, Engineering, Finance"
             />
+            {fieldErrors.department && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.department}</p>
+            )}
           </div>
 
           <div className="mb-6">
