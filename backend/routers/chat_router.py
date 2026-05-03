@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import get_db
-from models import User, QueryHistory
+from models import User, QueryHistory, Document
 from auth import decode_token
 from rag import answer_question
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -10,7 +10,11 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 router = APIRouter(prefix="/chat", tags=["chat"])
 security = HTTPBearer()
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
     token = credentials.credentials
     payload = decode_token(token)
     if not payload:
@@ -34,7 +38,14 @@ def ask(
     if not req.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
 
-    result = answer_question(req.question)
+    # Fetch available documents from PostgreSQL to pass to agent
+    documents = db.query(Document).all()
+    available_documents = [
+        {"filename": d.filename, "category": d.category}
+        for d in documents
+    ]
+
+    result = answer_question(req.question, available_documents)
 
     history = QueryHistory(
         user_id=current_user.id,
@@ -45,7 +56,11 @@ def ask(
     db.add(history)
     db.commit()
 
-    return {"answer": result["answer"], "sources": result["sources"]}
+    return {
+        "answer": result["answer"],
+        "sources": result["sources"],
+        "agent_used": result.get("agent_used", "multi-agent")
+    }
 
 
 @router.get("/history")

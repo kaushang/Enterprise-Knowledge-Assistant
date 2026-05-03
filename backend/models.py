@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, LargeBinary
 from sqlalchemy.sql import func
 from database import Base
 
@@ -22,6 +22,7 @@ class Document(Base):
     uploaded_by = Column(Integer, ForeignKey("users.id"))
     chunk_count = Column(Integer)
     category = Column(String(100), default="General")
+    file_bytes = Column(LargeBinary, nullable=True)
     uploaded_at = Column(DateTime, server_default=func.now())
 
 class QueryHistory(Base):

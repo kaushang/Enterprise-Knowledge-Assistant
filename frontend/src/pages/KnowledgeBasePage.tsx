@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import LogoutConfirmDialog from "../components/LogoutConfirmDialog";
+import Navbar from "../components/Navbar";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -32,6 +34,7 @@ export default function KnowledgeBasePage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     fetchDocuments();
@@ -65,6 +68,10 @@ export default function KnowledgeBasePage() {
   }
 
   function handleLogout() {
+    setShowLogoutConfirm(true);
+  }
+
+  function confirmLogout() {
     logout();
     navigate("/login");
   }
@@ -84,20 +91,11 @@ export default function KnowledgeBasePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="h-12 border-b border-gray-200 bg-white flex items-center justify-between px-6">
-        <span className="text-sm font-semibold text-black">
-          Nebula9 Knowledge Assistant
-        </span>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-gray-500">{user?.name}</span>
-          <button
-            onClick={handleLogout}
-            className="text-xs text-blue-600 hover:underline"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+      <Navbar
+        title="Enterprise Knowledge Assistant"
+        userName={user?.name}
+        onLogout={handleLogout}
+      />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Page title and nav */}
@@ -227,6 +225,11 @@ export default function KnowledgeBasePage() {
           </div>
         )}
       </div>
-    </div>
+      {/* Logout Confirmation Dialog */}
+      <LogoutConfirmDialog
+        isOpen={showLogoutConfirm}
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />    </div>
   );
 }

@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
-console.log("🩷API_URL:", API_URL);
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -21,7 +20,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      console.log("🩷API_URL:", API_URL);
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -6,6 +6,7 @@ from auth import decode_token
 from rag import ingest_document
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 security = HTTPBearer()
@@ -20,16 +21,6 @@ CATEGORIES = [
     "IT Policies",
 ]
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
-    token = credentials.credentials
-    payload = decode_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    user = db.query(User).filter(User.id == int(payload["sub"])).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
 def get_admin_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
     token = credentials.credentials
     payload = decode_token(token)
@@ -37,6 +28,17 @@ def get_admin_user(credentials: HTTPAuthorizationCredentials = Depends(security)
         raise HTTPException(status_code=401, detail="Invalid token")
     if payload.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
+    user = db.query(User).filter(User.id == int(payload["sub"])).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
     user = db.query(User).filter(User.id == int(payload["sub"])).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -71,7 +73,8 @@ async def upload_document(
         filename=file.filename,
         uploaded_by=current_user.id,
         chunk_count=chunk_count,
-        category=category or "General"
+        category=category or "General",
+        file_bytes=file_bytes
     )
     db.add(doc)
     db.commit()
@@ -99,3 +102,42 @@ def list_documents(
         }
         for d in docs
     ]
+
+
+class UpdateDocumentRequest(BaseModel):
+    filename: str
+    category: str
+
+
+@router.put("/documents/{doc_id}")
+def update_document(
+    doc_id: int,
+    req: UpdateDocumentRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user)
+):
+    doc = db.query(Document).filter(Document.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    doc.filename = req.filename
+    doc.category = req.category
+    db.commit()
+
+    return {"message": "Document updated successfully"}
+
+
+@router.delete("/documents/{doc_id}")
+def delete_document(
+    doc_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user)
+):
+    doc = db.query(Document).filter(Document.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    db.delete(doc)
+    db.commit()
+
+    return {"message": "Document deleted successfully"}
