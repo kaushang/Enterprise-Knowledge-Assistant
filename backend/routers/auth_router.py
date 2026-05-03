@@ -4,6 +4,7 @@ import secrets
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest
 from fastapi.responses import RedirectResponse
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import get_db
 from models import User
-from auth import hash_password, verify_password, create_access_token
+from auth import hash_password, verify_password, create_access_token, decode_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -34,12 +35,18 @@ class RegisterRequest(BaseModel):
     name: str
     email: str
     password: str
-    department: str = None
+    department: Optional[str] = None
     role: str = "employee"
 
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+
+class GoogleCompleteRequest(BaseModel):
+    signup_token: str
+    department: Optional[str] = None
+    role: str
 
 
 def user_payload(user: User) -> dict:
@@ -53,6 +60,16 @@ def create_auth_response(user: User) -> dict:
         "token_type": "bearer",
         "user": user_payload(user),
     }
+
+
+def create_google_signup_token(profile: dict) -> str:
+    return create_access_token(
+        {
+            "purpose": "google_signup",
+            "email": profile["email"],
+            "name": profile.get("name") or profile["email"].split("@")[0],
+        }
+    )
 
 
 def frontend_oauth_redirect(fragment: bool = False, **params: str) -> RedirectResponse:
@@ -117,8 +134,16 @@ def get_google_userinfo(access_token: str) -> dict:
             detail="Could not fetch Google account profile",
         ) from exc
 
+
+def validate_role(role: str) -> str:
+    allowed_roles = {"employee", "admin"}
+    if role not in allowed_roles:
+        raise HTTPException(status_code=400, detail="Role is required")
+    return role
+
 @router.post("/register")
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
+    validate_role(req.role)
     existing = db.query(User).filter(User.email == req.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -128,7 +153,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         email=req.email,
         hashed_password=hash_password(req.password),
         department=req.department,
-        role=req.role
+        role=req.role,
     )
     db.add(user)
     db.commit()
@@ -202,15 +227,14 @@ def google_callback(
 
         user = db.query(User).filter(User.email == email).first()
         if not user:
-            user = User(
+            response = frontend_oauth_redirect(
+                fragment=True,
+                google_signup_token=create_google_signup_token(profile),
                 name=profile.get("name") or email.split("@")[0],
                 email=email,
-                hashed_password=hash_password(secrets.token_urlsafe(32)),
-                role="employee",
             )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+            response.delete_cookie(GOOGLE_OAUTH_STATE_COOKIE)
+            return response
 
         auth_response = create_auth_response(user)
         response = frontend_oauth_redirect(
@@ -224,3 +248,31 @@ def google_callback(
 
     response.delete_cookie(GOOGLE_OAUTH_STATE_COOKIE)
     return response
+
+
+@router.post("/google/complete")
+def complete_google_registration(req: GoogleCompleteRequest, db: Session = Depends(get_db)):
+    payload = decode_token(req.signup_token)
+    if not payload or payload.get("purpose") != "google_signup":
+        raise HTTPException(status_code=401, detail="Invalid or expired Google signup session")
+
+    email = payload.get("email")
+    name = payload.get("name")
+    if not email or not name:
+        raise HTTPException(status_code=400, detail="Google signup profile is incomplete")
+
+    role = validate_role(req.role)
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(
+            name=name,
+            email=email,
+            hashed_password=hash_password(secrets.token_urlsafe(32)),
+            department=req.department,
+            role=role,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    return create_auth_response(user)

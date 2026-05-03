@@ -8,6 +8,12 @@ interface OAuthUser {
   role: string;
 }
 
+interface PendingGoogleSignup {
+  signupToken: string;
+  name: string;
+  email: string;
+}
+
 export default function OAuthCallbackPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -19,10 +25,27 @@ export default function OAuthCallbackPage() {
     );
     const accessToken = params.get("access_token");
     const userParam = params.get("user");
+    const googleSignupToken = params.get("google_signup_token");
+    const googleName = params.get("name");
+    const googleEmail = params.get("email");
     const oauthError = params.get("error");
 
     if (oauthError) {
       setError(oauthError);
+      return;
+    }
+
+    if (googleSignupToken && googleName && googleEmail) {
+      const pendingSignup: PendingGoogleSignup = {
+        signupToken: googleSignupToken,
+        name: googleName,
+        email: googleEmail,
+      };
+      sessionStorage.setItem(
+        "pendingGoogleSignup",
+        JSON.stringify(pendingSignup),
+      );
+      navigate("/register?provider=google", { replace: true });
       return;
     }
 
