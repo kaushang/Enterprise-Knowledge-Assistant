@@ -14,6 +14,10 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  function handleGoogleLogin() {
+    window.location.href = `${API_URL}/auth/google/login`;
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -97,6 +101,21 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
+
+        <div className="flex items-center gap-3 my-5">
+          <div className="h-px flex-1 bg-gray-200" />
+          <span className="text-xs text-gray-500">or</span>
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full border border-gray-300 bg-white text-gray-700 text-sm font-medium py-2 rounded hover:bg-gray-50 flex items-center justify-center gap-2"
+        >
+          <img className="w-5 h-5" src="google.png" alt="Google" />
+          Continue with Google
+        </button>
 
         <p className="text-xs text-gray-500 mt-4 text-center">
           Don't have an account?{" "}
