@@ -251,7 +251,7 @@ export default function ChatPage() {
             {messages.map((msg, i) => (
               <MessageBubble key={i} message={msg} userName={user?.name} />
             ))}
-            {true && (
+            {loading && (
               <div className="mb-4 flex justify-start">
                 <div className="mr-3 mt-6 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-600 text-xs font-semibold text-white">
                   A
