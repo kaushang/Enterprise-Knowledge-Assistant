@@ -251,10 +251,18 @@ export default function ChatPage() {
             {messages.map((msg, i) => (
               <MessageBubble key={i} message={msg} userName={user?.name} />
             ))}
-            {loading && (
-              <div className="flex justify-start mb-4">
-                <div className="bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-500">
-                  Thinking...
+            {true && (
+              <div className="mb-4 flex justify-start">
+                <div className="mr-3 mt-6 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-600 text-xs font-semibold text-white">
+                  A
+                </div>
+                <div className="flex max-w-[70%] flex-col items-start">
+                  <span className="mb-1 text-xs font-semibold text-gray-500">
+                    Assistant
+                  </span>
+                  <div className="w-[96px] rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-500 font-medium">
+                      Thinking<span className="dots text-lg"></span>
+                  </div>
                 </div>
               </div>
             )}
