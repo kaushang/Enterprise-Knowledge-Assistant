@@ -120,6 +120,17 @@ export default function AdminPage() {
       const res = await fetch(`${API_URL}/admin/documents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      if (res.status === 401) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch documents");
+      }
+
       const data = await res.json();
       setDocuments(data);
     } catch (err) {
@@ -159,6 +170,13 @@ export default function AdminPage() {
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+
+      if (res.status === 401) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
       const data = await res.json();
       if (!res.ok) {
         setUploadError(data.detail || "Upload failed");
@@ -203,6 +221,13 @@ export default function AdminPage() {
           category: editCategory,
         }),
       });
+
+      if (res.status === 401) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
       const data = await res.json();
       if (!res.ok) {
         setEditError(data.detail || "Update failed");
@@ -231,6 +256,11 @@ export default function AdminPage() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       if (!res.ok) return;
       setDeletingDocId(null);
       fetchDocuments();

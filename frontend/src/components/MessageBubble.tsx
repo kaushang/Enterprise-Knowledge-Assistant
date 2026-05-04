@@ -6,12 +6,42 @@ interface Message {
   sources?: string[]
 }
 
-export default function MessageBubble({ message }: { message: Message }) {
+export default function MessageBubble({
+  message,
+  userName,
+}: {
+  message: Message
+  userName?: string
+}) {
   const isUser = message.role === "user"
+  const displayName = userName || "You"
+  const senderLabel = isUser ? displayName : "Assistant"
+  const userInitials =
+    displayName
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "U"
+  const avatarText = isUser ? userInitials : "A"
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
-      <div className={`max-w-[70%] ${isUser ? "bg-blue-600 text-white" : "bg-gray-100 text-black"} rounded-lg px-4 py-3 text-sm`}>
+      {!isUser && (
+        <div className="mr-3 mt-6 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-600 text-xs font-semibold text-white">
+          {avatarText}
+        </div>
+      )}
+      <div className={`flex max-w-[70%] flex-col ${isUser ? "items-end" : "items-start"}`}>
+        <span
+          className={`mb-1 text-xs font-semibold ${
+            isUser ? "text-blue-700" : "text-gray-500"
+          }`}
+        >
+          {senderLabel}
+        </span>
+        <div className={`w-full ${isUser ? "bg-blue-600 text-white" : "bg-gray-100 text-black"} rounded-lg px-4 py-3 text-sm`}>
         <div className="prose prose-sm max-w-none">
           <ReactMarkdown
             components={{
@@ -36,7 +66,13 @@ export default function MessageBubble({ message }: { message: Message }) {
             </p>
           </div>
         )}
+        </div>
       </div>
+      {isUser && (
+        <div className="ml-3 mt-6 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
+          {avatarText}
+        </div>
+      )}
     </div>
   )
 }

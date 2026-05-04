@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import MessageBubble from "../components/MessageBubble";
 import LogoutConfirmDialog from "../components/LogoutConfirmDialog";
 import Navbar from "../components/Navbar";
-import { Link } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -45,6 +44,17 @@ export default function ChatPage() {
       const res = await fetch(`${API_URL}/chat/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      if (res.status === 401) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch history");
+      }
+
       const data = await res.json();
       setHistory(data);
     } catch (err) {
@@ -69,6 +79,16 @@ export default function ChatPage() {
         },
         body: JSON.stringify({ question }),
       });
+
+      if (res.status === 401) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("Failed to send message");
+      }
 
       const data = await res.json();
 
@@ -128,7 +148,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-white">
       {/* Header */}
       <Navbar
         title="Enterprise Knowledge Assistant"
@@ -137,9 +157,9 @@ export default function ChatPage() {
       />
 
       {/* Content area with sidebar and main chat */}
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1">
         {/* Sidebar */}
-        <div className="w-64 border-r border-gray-200 flex flex-col bg-white px-2">
+        <div className="w-64 flex-shrink-0 border-r border-gray-200 flex flex-col bg-white px-2">
           <div className="p-4 border-b border-gray-200">
             <button
               onClick={startNewChat}
@@ -218,9 +238,9 @@ export default function ChatPage() {
         </div>
 
         {/* Main chat area */}
-        <div className="flex-1 flex flex-col">
+        <div className="min-h-0 flex-1 flex flex-col">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
             {messages.length === 0 && (
               <div className="h-full flex items-center justify-center">
                 <p className="text-sm text-gray-400">
@@ -229,7 +249,7 @@ export default function ChatPage() {
               </div>
             )}
             {messages.map((msg, i) => (
-              <MessageBubble key={i} message={msg} />
+              <MessageBubble key={i} message={msg} userName={user?.name} />
             ))}
             {loading && (
               <div className="flex justify-start mb-4">
@@ -242,7 +262,7 @@ export default function ChatPage() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-gray-200 px-6 py-4">
+          <div className="flex-shrink-0 border-t border-gray-200 px-6 py-4">
             <div className="flex gap-3 items-end">
               <textarea
                 value={input}

@@ -54,8 +54,13 @@ export default function KnowledgeBasePage() {
       });
 
       if (res.status === 401) {
-        navigate("/login");
+        logout();
+        navigate("/login", { replace: true });
         return;
+      }
+
+      if (!res.ok) {
+        throw new Error("Failed to load documents");
       }
 
       const data = await res.json();
